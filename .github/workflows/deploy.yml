@@ -44,4 +44,34 @@ jobs:
   # EC2에 docker-compose.yml, 설정파일등 copy, 
   # 도커컴포즈 SHH 명령어 실행  
   cd:
+    # ci 작업이 완료된후 진행
+    needs: ci
+    # cd 작업을 위한 서버 세팅
+    runs-on:  ubuntu-latest
+    steps:
+      # 1. 소스코드 체크아웃
+      - name: 코드 checkout
+        uses: actions/checkout@v3
+      
+      - name: sourcecode copy to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          # 복사할 대상 (편의상 .(현재디렉토리))
+          source: .
+          # ubuntu os가 세팅된 ec2 서버의 /home/ubuntu/projects/*.* 복사
+          target: "/home/ubuntu/projects"
+      
+      - name: Run Script And Service Restart
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          script: |
+            
     
